@@ -2,19 +2,20 @@
 require('dotenv').config()
 
 // External
-var createError = require('http-errors')
-var express = require('express')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
-var sassMiddleware = require('node-sass-middleware')
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const sassMiddleware = require('node-sass-middleware')
+const postcssMiddleware = require('postcss-middleware')
 
 // Internal
-var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
+const indexRouter = require('./routes/index')
+const usersRouter = require('./routes/users')
 
 // Create Express
-var app = express()
+const app = express()
 
 // View engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -25,10 +26,19 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(sassMiddleware({
-  src: path.join(__dirname, 'public'),
+  src: path.join(__dirname, 'src'),
   dest: path.join(__dirname, 'public'),
-  indentedSyntax: true, // true = .sass and false = .scss
+  includePaths: [path.join(__dirname, 'node_modules')],
+  indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true
+}))
+app.use(postcssMiddleware({
+  plugins: [
+    require('tailwindcss')
+  ],
+  src: function (req) {
+    return path.join(__dirname, 'public', req.path)
+  }
 }))
 app.use(express.static(path.join(__dirname, 'public')))
 
